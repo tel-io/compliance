@@ -75,7 +75,7 @@ services:
 
 == Install
 === download
-https://github.com/d7561985/nats-ab/releases
+https://github.com/tel-io/compliance/releases
 
 === golang
 Go 1.16+
