@@ -7,9 +7,12 @@ import (
 	"github.com/d7561985/tel/v2/otlplog/logskd"
 	"github.com/d7561985/tel/v2/otlplog/otlploggrpc"
 	"github.com/d7561985/tel/v2/pkg/logtransform"
+	"github.com/d7561985/tel/v2/pkg/tracetransform"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	"go.uber.org/zap/zapcore"
 )
@@ -78,11 +81,61 @@ func (c *check) handler() func(*cli.Context) error {
 			return errors.WithMessagef(err, "send message")
 		}
 
+		if err := tr(ccx); err != nil {
+			return errors.WithMessage(err, "trace check")
+		}
+
 		log.Println("OK")
 
 		return nil
 	}
 
+}
+
+func tr(ccx *cli.Context) error {
+	opts := []otlptracegrpc.Option{otlptracegrpc.WithEndpoint(ccx.String(addr))}
+	if ccx.Bool(insecure) {
+		opts = append(opts, otlptracegrpc.WithInsecure())
+	}
+
+	res, _ := resource.New(ccx.Context, resource.WithAttributes(
+		// the service name used to display traces in backends
+		// key: service.name
+		semconv.ServiceNameKey.String("PING"),
+		// key: service.namespace
+		semconv.ServiceNamespaceKey.String("TEST"),
+		// key: service.version
+		semconv.ServiceVersionKey.String("TEST"),
+		semconv.ServiceInstanceIDKey.String("LOCAL"),
+	))
+
+	client := otlptracegrpc.NewClient(opts...,
+	//otlptracegrpc.WithDialOption(grpc.WithBlock()),
+	)
+
+	if err := client.Start(ccx.Context); err != nil {
+		return errors.WithStack(err)
+	}
+
+	defer func() {
+		_ = client.Stop(ccx.Context)
+	}()
+
+	tp := trace.NewTracerProvider(trace.WithSampler(trace.AlwaysSample()), trace.WithResource(res))
+	bsp := trace.NewBatchSpanProcessor(nil)
+	tp.RegisterSpanProcessor(bsp)
+
+	tr := tp.Tracer("NilExporter")
+	_, span := tr.Start(ccx.Context, "XXX")
+	span.End()
+
+	val := tracetransform.Spans([]trace.ReadOnlySpan{span.(trace.ReadOnlySpan)})
+
+	if err := client.UploadTraces(ccx.Context, val); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
 }
 
 func logg() logskd.Log {
