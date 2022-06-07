@@ -63,6 +63,9 @@ func (d *demo) handler() cli.ActionFunc {
 
 		// grpc client
 		gClient, err := grpctest.NewClient(gSrv)
+		if err != nil {
+			t.Fatal("grpc client", tel.Error(err))
+		}
 
 		// http server
 		hAddr, err := httptest.New(gClient).Start()
