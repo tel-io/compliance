@@ -39,11 +39,12 @@ func (d *demo) Command() *cli.Command {
 
 func (d *demo) handler() cli.ActionFunc {
 	return func(ccx *cli.Context) error {
-		cfg := tel.DefaultDebugConfig()
+		cfg := tel.GetConfigFromEnv()
 		cfg.LogEncode = "console"
 		cfg.Namespace = "TEST"
 		cfg.Service = "DEMO"
 		cfg.Addr = ccx.String(addr)
+		cfg.MonitorConfig.Enable = false
 		cfg.WithInsecure = ccx.Bool(insecure)
 
 		t, cc := tel.New(ccx.Context, cfg)
