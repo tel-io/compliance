@@ -3,10 +3,11 @@ package cmd
 import (
 	"log"
 
-	"github.com/d7561985/tel/example/demo/client/v2/pkg/service"
+	"github.com/d7561985/tel/example/demo/client/v2/pkg/grpctest"
+	"github.com/d7561985/tel/example/demo/client/v2/pkg/httptest"
+	"github.com/d7561985/tel/example/demo/client/v2/pkg/mgr"
 	"github.com/d7561985/tel/v2"
 	health "github.com/d7561985/tel/v2/monitoring/heallth"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
 
@@ -53,9 +54,30 @@ func (d *demo) handler() cli.ActionFunc {
 
 		t.Info("collector", tel.String("addr", cfg.Addr))
 
-		srv := service.New(t)
+		// grpc server
+		gSrv, err := grpctest.Start()
+		if err != nil {
+			t.Fatal("grpc server", tel.Error(err))
+		}
+
+		// grpc client
+		gClient, err := grpctest.NewClient(gSrv)
+
+		// http server
+		hAddr, err := httptest.New(gClient).Start()
+		if err != nil {
+			t.Fatal("http server", tel.Error(err))
+		}
+
+		// http client
+		hClt, err := httptest.NewClient("http://" + hAddr)
+		if err != nil {
+			t.Fatal("http client", tel.Error(err))
+		}
+
+		srv := mgr.New(t, hClt)
 		if err := srv.Start(ctx); err != nil {
-			return errors.WithStack(err)
+			t.Fatal("service", tel.Error(err))
 		}
 
 		log.Println("OK")
