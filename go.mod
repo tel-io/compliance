@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/d7561985/tel/example/demo/client/v2 v2.0.0-20220607092233-ebcc33bcdbef
-	github.com/d7561985/tel/v2 v2.0.4
+	github.com/d7561985/tel/v2 v2.0.5
 	github.com/joho/godotenv v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli/v2 v2.8.1
