@@ -52,6 +52,8 @@ func (c *check) Command() *cli.Command {
 
 func (c *check) handler() func(*cli.Context) error {
 	return func(ccx *cli.Context) error {
+		log.Println(ccx.String(addr))
+
 		opts := []otlploggrpc.Option{otlploggrpc.WithEndpoint(ccx.String(addr))}
 		if ccx.Bool(insecure) {
 			opts = append(opts, otlploggrpc.WithInsecure())
