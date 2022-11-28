@@ -1,14 +1,22 @@
 package cmd
 
 import (
-	"log"
-
 	"github.com/d7561985/tel/example/demo/client/v2/pkg/grpctest"
 	"github.com/d7561985/tel/example/demo/client/v2/pkg/httptest"
 	"github.com/d7561985/tel/example/demo/client/v2/pkg/mgr"
 	"github.com/d7561985/tel/v2"
 	health "github.com/d7561985/tel/v2/monitoring/heallth"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/sync/errgroup"
+)
+
+const (
+	threadsNum = "threads"
+	httpServer = "http_serer_addr"
+	grpcServer = "grpc_server_addr"
+
+	defaultGrpcServer = "0.0.0.0:9500"
+	defaultHttpServer = "0.0.0.0:9501"
 )
 
 type demo struct{}
@@ -33,7 +41,9 @@ func (d *demo) Command() *cli.Command {
 				Value: true,
 				Usage: "insecure grpc connection",
 			},
-		},
+			&cli.StringFlag{Name: grpcServer, Value: defaultGrpcServer},
+			&cli.StringFlag{Name: httpServer, Value: defaultHttpServer},
+			&cli.IntFlag{Name: threadsNum, Value: 100, Aliases: []string{"t"}}},
 	}
 }
 
@@ -55,37 +65,33 @@ func (d *demo) handler() cli.ActionFunc {
 
 		t.Info("collector", tel.String("addr", cfg.Addr))
 
-		// grpc server
-		gSrv, err := grpctest.Start()
-		if err != nil {
-			t.Fatal("grpc server", tel.Error(err))
-		}
+		eg := errgroup.Group{}
+		eg.Go(func() error {
+			return grpctest.Start(ctx, ccx.String(grpcServer))
+		})
 
-		// grpc client
-		gClient, err := grpctest.NewClient(gSrv)
-		if err != nil {
-			t.Fatal("grpc client", tel.Error(err))
-		}
+		eg.Go(func() error {
+			// grpc client
+			gClient, err := grpctest.NewClient(ccx.String(grpcServer))
+			if err != nil {
+				t.Fatal("grpc client", tel.Error(err))
+			}
 
-		// http server
-		hAddr, err := httptest.New(gClient).Start()
-		if err != nil {
-			t.Fatal("http server", tel.Error(err))
-		}
+			// http server
+			return httptest.New(t, gClient, ccx.String(httpServer)).Start(ctx)
+		})
 
-		// http client
-		hClt, err := httptest.NewClient("http://" + hAddr)
-		if err != nil {
-			t.Fatal("http client", tel.Error(err))
-		}
+		eg.Go(func() error {
+			// http client
+			hClt, err := httptest.NewClient("http://" + ccx.String(httpServer))
+			if err != nil {
+				t.Fatal("http client", tel.Error(err))
+			}
 
-		srv := mgr.New(t, hClt)
-		if err := srv.Start(ctx); err != nil {
-			t.Fatal("service", tel.Error(err))
-		}
+			srv := mgr.New(t, hClt)
+			return srv.Start(ctx, 100)
+		})
 
-		log.Println("OK")
-
-		return nil
+		return eg.Wait()
 	}
 }
