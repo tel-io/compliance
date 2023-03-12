@@ -4,12 +4,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/d7561985/tel/v2/otlplog/logskd"
-	"github.com/d7561985/tel/v2/otlplog/otlploggrpc"
-	"github.com/d7561985/tel/v2/pkg/logtransform"
-	"github.com/d7561985/tel/v2/pkg/tracetransform"
 	"github.com/pkg/errors"
+	"github.com/tel-io/tel/v2/otlplog/logskd"
+	"github.com/tel-io/tel/v2/otlplog/otlploggrpc"
+	"github.com/tel-io/tel/v2/pkg/logtransform"
 	"github.com/urfave/cli/v2"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
@@ -124,18 +125,21 @@ func tr(ccx *cli.Context) error {
 	}()
 
 	tp := trace.NewTracerProvider(trace.WithSampler(trace.AlwaysSample()), trace.WithResource(res))
-	bsp := trace.NewBatchSpanProcessor(nil)
-	tp.RegisterSpanProcessor(bsp)
-
-	tr := tp.Tracer("NilExporter")
-	_, span := tr.Start(ccx.Context, "XXX")
-	span.End()
-
-	val := tracetransform.Spans([]trace.ReadOnlySpan{span.(trace.ReadOnlySpan)})
-
-	if err := client.UploadTraces(ccx.Context, val); err != nil {
+	exp, err := otlptrace.New(ccx.Context, client)
+	if err != nil {
 		return errors.WithStack(err)
 	}
+
+	defer func() {
+		_ = tp.Shutdown(ccx.Context)
+	}()
+
+	bsp := trace.NewBatchSpanProcessor(exp)
+	tp.RegisterSpanProcessor(bsp)
+
+	trx := tp.Tracer("NilExporter")
+	_, span := trx.Start(ccx.Context, "XXX")
+	span.End()
 
 	return nil
 }
@@ -146,5 +150,5 @@ func logg() logskd.Log {
 		Time:       time.Now(),
 		LoggerName: "XXX",
 		Message:    "XXX",
-	}, []byte("HELLO=WORLD"))
+	}, attribute.String("HELLO", "WORLD"))
 }

@@ -28,6 +28,7 @@ func Run() {
 		Commands: []*cli.Command{
 			newCheck().Command(),
 			newDemo().Command(),
+			newBench().Command(),
 		},
 	}
 

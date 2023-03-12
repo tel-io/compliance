@@ -1,11 +1,10 @@
 package cmd
 
 import (
-	"github.com/d7561985/tel/example/demo/client/v2/pkg/grpctest"
-	"github.com/d7561985/tel/example/demo/client/v2/pkg/httptest"
-	"github.com/d7561985/tel/example/demo/client/v2/pkg/mgr"
-	"github.com/d7561985/tel/v2"
-	health "github.com/d7561985/tel/v2/monitoring/heallth"
+	"github.com/tel-io/tel/example/demo/client/v2/pkg/grpctest"
+	"github.com/tel-io/tel/example/demo/client/v2/pkg/httptest"
+	"github.com/tel-io/tel/example/demo/client/v2/pkg/mgr"
+	"github.com/tel-io/tel/v2"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/sync/errgroup"
 )
@@ -61,7 +60,6 @@ func (d *demo) handler() cli.ActionFunc {
 		defer cc()
 
 		ctx := tel.WithContext(ccx.Context, t)
-		t.AddHealthChecker(ctx, tel.HealthChecker{Handler: health.NewCompositeChecker()})
 
 		t.Info("collector", tel.String("addr", cfg.Addr))
 
@@ -72,7 +70,7 @@ func (d *demo) handler() cli.ActionFunc {
 
 		eg.Go(func() error {
 			// grpc client
-			gClient, err := grpctest.NewClient(ccx.String(grpcServer))
+			gClient, err := grpctest.NewClient(&t, ccx.String(grpcServer))
 			if err != nil {
 				t.Fatal("grpc client", tel.Error(err))
 			}
@@ -83,7 +81,7 @@ func (d *demo) handler() cli.ActionFunc {
 
 		eg.Go(func() error {
 			// http client
-			hClt, err := httptest.NewClient("http://" + ccx.String(httpServer))
+			hClt, err := httptest.NewClient(&t, "http://"+ccx.String(httpServer))
 			if err != nil {
 				t.Fatal("http client", tel.Error(err))
 			}
