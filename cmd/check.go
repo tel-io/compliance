@@ -9,6 +9,7 @@ import (
 	"github.com/tel-io/tel/v2/otlplog/otlploggrpc"
 	"github.com/tel-io/tel/v2/pkg/logtransform"
 	"github.com/urfave/cli/v2"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -149,5 +150,5 @@ func logg() logskd.Log {
 		Time:       time.Now(),
 		LoggerName: "XXX",
 		Message:    "XXX",
-	}, []byte("HELLO=WORLD")) // attribute.String("HELLO", "WORLD")
+	}, attribute.String("HELLO", "WORLD"))
 }
