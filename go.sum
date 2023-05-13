@@ -205,8 +205,8 @@ github.com/tel-io/instrumentation/module/otelgrpc/example v0.0.0-20221112184934-
 github.com/tel-io/instrumentation/module/otelgrpc/example v0.0.0-20221112184934-38eaca0ccf95/go.mod h1:ktUe0s63jC656vvVvBOOIhLJF0l52Q8xPaCgWFgsyRk=
 github.com/tel-io/tel/example/demo/client/v2 v2.0.0-20230310153321-6830a86c5cd5 h1:0B2LJEhpARGuDqC48BTRarzLdlIVH7W4/cQ6egHv+4s=
 github.com/tel-io/tel/example/demo/client/v2 v2.0.0-20230310153321-6830a86c5cd5/go.mod h1:nL9rR0tuLbimjeINTtDs2Kz6itfMTQoQlfGZE/9oQPM=
-github.com/tel-io/tel/v2 v2.2.1 h1:s9biwM1dL4NPE9LiIhNgldaNCJa71raapHAV10kujPg=
-github.com/tel-io/tel/v2 v2.2.1/go.mod h1:TRDkENW7qY+VN4Wp1EmzizfC6sbpGis34mqrmelLHhQ=
+github.com/tel-io/tel/v2 v2.2.3 h1:TWbTOIBdi0Ww46PnE5Lrsvhfl/xW972v6xf5bZw+yhI=
+github.com/tel-io/tel/v2 v2.2.3/go.mod h1:TRDkENW7qY+VN4Wp1EmzizfC6sbpGis34mqrmelLHhQ=
 github.com/tklauser/go-sysconf v0.3.10 h1:IJ1AZGZRWbY8T5Vfk04D9WOA5WSejdflXxP03OUqALw=
 github.com/tklauser/go-sysconf v0.3.10/go.mod h1:C8XykCvCb+Gn0oNCWPIlcb0RuglQTYaQ2hGm7jmxEFk=
 github.com/tklauser/numcpus v0.4.0/go.mod h1:1+UI3pD8NW14VMwdgJNJ1ESk2UnwhAnz5hMwiKKqXCQ=

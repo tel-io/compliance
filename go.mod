@@ -6,7 +6,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/tel-io/tel/example/demo/client/v2 v2.0.0-20230310153321-6830a86c5cd5
-	github.com/tel-io/tel/v2 v2.2.1
+	github.com/tel-io/tel/v2 v2.2.3
 	github.com/urfave/cli/v2 v2.10.3
 	go.opentelemetry.io/otel v1.11.2-0.20221111171059-308d0362e6c5
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.11.2-0.20221111171059-308d0362e6c5

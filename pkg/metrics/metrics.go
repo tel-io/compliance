@@ -77,8 +77,6 @@ func New(metricCount, labelCount, seriesCount, metricLength, labelLength, valueI
 func (m *Metrics) Run(ctx context.Context) error {
 	m.metrics = m.registerMetrics()
 
-	m.cycleValues()
-
 	valueTick := time.NewTicker(time.Duration(m.valueInterval) * time.Second)
 	seriesTick := time.NewTicker(time.Duration(m.seriesInterval) * time.Second)
 	metricTick := time.NewTicker(time.Duration(m.metricInterval) * time.Second)
@@ -105,7 +103,6 @@ func (m *Metrics) Run(ctx context.Context) error {
 			m.metricCycle++
 			// One way to do this remove tel
 			//unregisterMetrics()
-			m.metrics = m.registerMetrics()
 			//m.cycleValues()
 		}
 	}()
