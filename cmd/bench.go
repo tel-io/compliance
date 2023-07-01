@@ -70,7 +70,7 @@ func (c *bench) Command() *cli.Command {
 			},
 			&cli.IntFlag{
 				Name:  valueInterval,
-				Value: 30,
+				Value: 15,
 				Usage: "Change series values every {interval} seconds.",
 			},
 			&cli.IntFlag{
@@ -100,6 +100,7 @@ func (c *bench) handler() func(ctx *cli.Context) error {
 		cfg.Addr = ctx.String(addr)
 		cfg.MonitorConfig.Enable = false
 		cfg.WithInsecure = ctx.Bool(insecure)
+		cfg.MetricsPeriodicIntervalSec = ctx.Int(valueInterval)
 
 		t, cc := tel.New(ctx.Context, cfg)
 		defer cc()
@@ -114,7 +115,6 @@ func (c *bench) handler() func(ctx *cli.Context) error {
 			ctx.Int(seriesCount),
 			ctx.Int(metricLength),
 			ctx.Int(labelNameLength),
-			ctx.Int(valueInterval),
 			ctx.Int(labelInterval),
 			ctx.Int(metricInterval),
 			ctx.StringSlice(constLabels),

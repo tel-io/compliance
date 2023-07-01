@@ -25,7 +25,6 @@ type Metrics struct {
 	seriesCount    int
 	metricLength   int
 	labelLength    int
-	valueInterval  int
 	seriesInterval int
 	metricInterval int
 	constLabels    []string
@@ -40,7 +39,7 @@ type Metrics struct {
 }
 
 // New creates a set of Prometheus test series that update over time
-func New(metricCount, labelCount, seriesCount, metricLength, labelLength, valueInterval, seriesInterval, metricInterval int, constLabels []string) (*Metrics, error) {
+func New(metricCount, labelCount, seriesCount, metricLength, labelLength, seriesInterval, metricInterval int, constLabels []string) (*Metrics, error) {
 	labels := make([]attribute.KeyValue, labelCount)
 	for idx := 0; idx < labelCount; idx++ {
 		labels[idx] = attribute.String(
@@ -63,7 +62,6 @@ func New(metricCount, labelCount, seriesCount, metricLength, labelLength, valueI
 		seriesCount:    seriesCount,
 		metricLength:   metricLength,
 		labelLength:    labelLength,
-		valueInterval:  valueInterval,
 		seriesInterval: seriesInterval,
 		metricInterval: metricInterval,
 		constLabels:    constLabels,
@@ -77,16 +75,8 @@ func New(metricCount, labelCount, seriesCount, metricLength, labelLength, valueI
 func (m *Metrics) Run(ctx context.Context) error {
 	m.metrics = m.registerMetrics()
 
-	valueTick := time.NewTicker(time.Duration(m.valueInterval) * time.Second)
 	seriesTick := time.NewTicker(time.Duration(m.seriesInterval) * time.Second)
 	metricTick := time.NewTicker(time.Duration(m.metricInterval) * time.Second)
-
-	go func() {
-		for tick := range valueTick.C {
-			tel.FromCtx(ctx).Info("refreshing metric values", tel.Time("tick", tick))
-			//m.cycleValues()
-		}
-	}()
 
 	go func() {
 		for tick := range seriesTick.C {
@@ -108,7 +98,6 @@ func (m *Metrics) Run(ctx context.Context) error {
 	}()
 
 	<-ctx.Done()
-	valueTick.Stop()
 	seriesTick.Stop()
 	metricTick.Stop()
 
