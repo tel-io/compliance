@@ -106,15 +106,6 @@ func (m *Metrics) Run(ctx context.Context) error {
 	return nil
 }
 
-func (m *Metrics) cycleValues() {
-	for _, metric := range m.metrics {
-		for idx := 0; idx < m.seriesCount; idx++ {
-			labels := m.seriesLabels(idx)
-			metric.Observe(context.Background(), float64(valGenerator.Intn(100)), labels...)
-		}
-	}
-}
-
 func (m *Metrics) registerMetrics() []asyncfloat64.Gauge {
 	metrics := make([]asyncfloat64.Gauge, m.metricCount)
 	var instr []instrument.Asynchronous
@@ -139,7 +130,7 @@ func (m *Metrics) registerMetrics() []asyncfloat64.Gauge {
 			}
 		}
 
-		fmt.Println("processing", time.Now().Sub(start).String())
+		fmt.Println("processing", time.Since(start).String())
 	})
 
 	noerr("RegisterCallback", err)
