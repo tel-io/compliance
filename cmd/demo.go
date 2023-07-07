@@ -16,6 +16,8 @@ const (
 
 	defaultGrpcServer = "0.0.0.0:9500"
 	defaultHttpServer = "0.0.0.0:9501"
+
+	sampler = "sampler"
 )
 
 type demo struct{}
@@ -34,6 +36,11 @@ func (d *demo) Command() *cli.Command {
 				Usage:   "OTLP protocol collector address",
 				Value:   "0.0.0.0:4317",
 				EnvVars: []string{"OTEL_COLLECTOR_GRPC_ADDR"},
+			},
+			&cli.StringFlag{
+				Name:  sampler,
+				Value: "always",
+				Usage: "Tracing sampler: never, always, traceidratio, statustraceidratio. NOTE: traceidratio and statustraceidratio required value separated with ':'. Example: 'traceidratio:10'",
 			},
 			&cli.BoolFlag{
 				Name:  insecure,
@@ -55,6 +62,10 @@ func (d *demo) handler() cli.ActionFunc {
 		cfg.Addr = ccx.String(addr)
 		cfg.MonitorConfig.Enable = false
 		cfg.WithInsecure = ccx.Bool(insecure)
+		cfg.Metrics.EnableRetry = false
+		cfg.Traces.EnableSpanTrackLogFields = true
+		cfg.Traces.EnableSpanTrackLogMessage = true
+		cfg.Traces.Sampler = "always"
 
 		t, cc := tel.New(ccx.Context, cfg)
 		defer cc()

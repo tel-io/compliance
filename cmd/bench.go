@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	prefix          = "prefix"
 	metricCount     = "metric-count"
 	labelCount      = "label-count"
 	seriesCount     = "series-count"
@@ -42,6 +43,11 @@ func (c *bench) Command() *cli.Command {
 				Name:  insecure,
 				Value: true,
 				Usage: "insecure grpc connection",
+			},
+			&cli.StringFlag{
+				Name:  prefix,
+				Value: "avalanche",
+				Usage: "prefix for metrics",
 			},
 			&cli.IntFlag{
 				Name:  metricCount,
@@ -107,9 +113,13 @@ func (c *bench) handler() func(ctx *cli.Context) error {
 
 		cxt := tel.WithContext(ctx.Context, t)
 
-		t.Info("collector", tel.String("addr", cfg.Addr))
+		t.Info("collector",
+			tel.String("addr", cfg.Addr),
+			tel.Int("dimension", ctx.Int(seriesCount)*ctx.Int(metricCount)),
+		)
 
 		m, err := metrics.New(
+			ctx.String(prefix),
 			ctx.Int(metricCount),
 			ctx.Int(labelCount),
 			ctx.Int(seriesCount),

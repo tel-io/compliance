@@ -20,6 +20,7 @@ var (
 )
 
 type Metrics struct {
+	prefix         string
 	metricCount    int
 	labelCount     int
 	seriesCount    int
@@ -39,7 +40,7 @@ type Metrics struct {
 }
 
 // New creates a set of Prometheus test series that update over time
-func New(metricCount, labelCount, seriesCount, metricLength, labelLength, seriesInterval, metricInterval int, constLabels []string) (*Metrics, error) {
+func New(prefix string, metricCount, labelCount, seriesCount, metricLength, labelLength, seriesInterval, metricInterval int, constLabels []string) (*Metrics, error) {
 	labels := make([]attribute.KeyValue, labelCount)
 	for idx := 0; idx < labelCount; idx++ {
 		labels[idx] = attribute.String(
@@ -57,6 +58,7 @@ func New(metricCount, labelCount, seriesCount, metricLength, labelLength, series
 	}
 
 	return &Metrics{
+		prefix:         prefix,
 		metricCount:    metricCount,
 		labelCount:     labelCount,
 		seriesCount:    seriesCount,
@@ -118,7 +120,7 @@ func (m *Metrics) registerMetrics() []asyncfloat64.Gauge {
 	var instr []instrument.Asynchronous
 
 	for idx := 0; idx < m.metricCount; idx++ {
-		name := fmt.Sprintf("avalanche_metric_%s_%v_%v", strings.Repeat("m", m.metricLength), m.metricCycle, idx)
+		name := fmt.Sprintf("%s_metric_%s_%v_%v", m.prefix, strings.Repeat("m", m.metricLength), m.metricCycle, idx)
 		gauge, err := m.meter.AsyncFloat64().Gauge(name,
 			instrument.WithDescription("A tasty metric morsel"))
 		noerr("create gauge", err)
@@ -128,12 +130,16 @@ func (m *Metrics) registerMetrics() []asyncfloat64.Gauge {
 	}
 
 	err := m.meter.RegisterCallback(instr, func(ctx context.Context) {
-		for _, metric := range metrics {
+		start := time.Now()
+
+		for _, item := range metrics {
 			for idx := 0; idx < m.seriesCount; idx++ {
 				labels := m.seriesLabels(idx)
-				metric.Observe(ctx, float64(valGenerator.Intn(100)), labels...)
+				item.Observe(ctx, float64(valGenerator.Intn(100)), labels...)
 			}
 		}
+
+		fmt.Println("processing", time.Now().Sub(start).String())
 	})
 
 	noerr("RegisterCallback", err)
